@@ -12,9 +12,11 @@ app.use(express.json({limit: "16kb"}))
 app.use(cookieParser())
 
 
-import authRouter from "./routes/auth.routes.js";
+import { authRouter } from "./routes/auth.routes.js";
+import { animeRouter } from "./routes/anime.routes.js";
 
 app.use("/api/auth", authRouter)
+app.use("/api/anime", animeRouter)
 
 export {
     app

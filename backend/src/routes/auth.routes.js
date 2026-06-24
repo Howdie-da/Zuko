@@ -1,12 +1,14 @@
 import { Router } from 'express'
 import { login, callback, getProfile } from '../controllers/auth.controller.js'
 
-const router = Router()
+const authRouter = Router()
 
-router.route("/login").get(login)
+authRouter.route("/login").get(login)
 
-router.route("/callback").get(callback)
+authRouter.route("/callback").get(callback)
 
-router.route("/me").get(getProfile);
+authRouter.route("/me").get(getProfile);
 
-export default router
+export {
+    authRouter
+}
