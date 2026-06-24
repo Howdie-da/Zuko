@@ -1,7 +1,9 @@
 import crypto from "crypto";
 import { ApiResponse } from "../utils/ApiResponse.js"
+import { ApiError } from '../utils/ApiError.js'
 import { asyncHandler } from "../utils/asyncHandler.js"
 import axios from 'axios'
+import { User } from '../models/user.model.js'
 
 const options = {
     httpOnly: true,
@@ -52,13 +54,61 @@ const callback = asyncHandler(async (req, res) => {
 
     const {access_token, refresh_token} = response.data
 
+    const profileResponse = await axios.get(
+        "http://api.myanimelist.net/v2/users/@me",
+        {
+            headers: {
+                "Authorization": `Bearer ${access_token}`
+            }
+        }
+    )
+
+    const profile = profileResponse.data
+
+    const user = await User.findOneAndUpdate(
+        { malId: profile.id },
+        {
+            username: profile.name,
+            avatar: profile.picture,
+            accessToken: access_token,
+            refreshToken: refresh_token
+        },
+        {
+            returnDocument: "after",
+            upsert: true
+        }
+    )
+
     return res
-    .cookie("access_token", access_token, cookieOptions)
-    .cookie("refresh_token", refresh_token, cookieOptions)
+    .cookie("access_token", access_token, options)
+    .cookie("refresh_token", refresh_token, options)
+    .cookie("user_id", user.malId, options)
     .json(response.data)
+})
+
+const getProfile = asyncHandler(async (req, res) => {
+    const accessToken = req.cookies?.access_token
+
+    if (!accessToken) {
+        throw new ApiError(401, "User is not authenticated")
+    }
+
+    const response = await axios.get(
+        "https://api.myanimelist.net/v2/users/@me",
+        {
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            },
+        }
+    )
+
+    return res
+    .status(200)
+    .json(new ApiResponse(200, response.data, "User profile fetched Successfully"))
 })
 
 export {
     login,
-    callback
+    callback,
+    getProfile
 }
