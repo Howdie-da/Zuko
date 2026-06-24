@@ -1,0 +1,1 @@
+Just a fun personal project to interact with my MAL list in a more fancier and interactive way.
