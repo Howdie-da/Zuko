@@ -1,9 +1,32 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Button2 } from '../components'
 import zuko1 from '../assets/zuko1.jpg'
 import { loginHandle } from '../services/authService'
+import apiClient from '../services/api'
+import { useDispatch, useSelector } from 'react-redux'
+import { setCreds } from '../store/authSlice'
 
 function Home() {
+  const dispatch = useDispatch()
+  
+  const isAuthenticated = useSelector(state => state.auth.isAuthenticated)
+
+  useEffect(() => {
+    const initializeAuth = async () => {
+      try {
+        const response = await apiClient.get('auth/me')
+
+        if (response.data) {
+          dispatch(setCreds({user: response.data}))
+        }
+      } catch (error) {
+        console.log("No active secure session found.")
+      }
+    }
+
+    initializeAuth()
+  }, [])
+
   return (
     <div className='relative min-h-screen w-full bg-[#200800] overflow-hidden flex flex-col justify-between items-center font-sans'>
       
@@ -39,8 +62,8 @@ function Home() {
         </p>
 
         <div className='pt-4'>
-          <Button2 onClick={loginHandle}>
-            Get Started
+          <Button2 onClick={isAuthenticated ? null : loginHandle}>
+            {isAuthenticated ? "Connected" : "Get Started"}
           </Button2>
         </div>
 

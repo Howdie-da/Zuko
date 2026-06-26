@@ -30,7 +30,7 @@ const callback = asyncHandler(async (req, res) => {
     const verifier = req.cookies?.code_verifier
 
     if (!code) {
-        throw new ApiError(400, "Authentication rejected by user")
+        return res.redirect(process.env.HOME_PAGE)
     }
 
     const tokenPayload = {
@@ -83,7 +83,7 @@ const callback = asyncHandler(async (req, res) => {
     .cookie("access_token", access_token, options)
     .cookie("refresh_token", refresh_token, options)
     .cookie("user_id", user.malId, options)
-    .json(response.data)
+    .redirect(process.env.HOME_PAGE)
 })
 
 const getProfile = asyncHandler(async (req, res) => {

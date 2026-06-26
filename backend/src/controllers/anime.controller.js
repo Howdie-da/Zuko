@@ -108,8 +108,46 @@ const getSeasonal = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, response.data, `Showing ${year} ${season} anime`))
 })
 
+const getList = asyncHandler(async (req, res) => {
+    const accessToken = req.cookies?.access_token
+    const userId = req.cookies?.user_id
+
+    if (!accessToken || !userId) {
+        throw new ApiError(401, "Authentication Failed")
+    }
+
+    const response = await axios.get(
+        `https://api.myanimelist.net/v2/users/@me/animelist`,
+        {
+            headers: {
+                Authorization: `Bearer ${accessToken}`
+            },
+            params: {
+                sort: "list_updated_at",
+                limit: 1000,
+                fields: "synopsis,mean,rank,popularity,genres,num_episodes,my_list_status"
+            }
+        }
+    )
+
+    const rawArray = response.data?.data || []
+
+    const sortedCatalog = {
+        watching: rawArray.filter(item => item.node.my_list_status?.status === "watching"),
+        completed: rawArray.filter(item => item.node.my_list_status?.status === "completed"),
+        on_hold: rawArray.filter(item => item.node.my_list_status?.status === "on_hold"),
+        dropped: rawArray.filter(item => item.node.my_list_status?.status === "dropped"),
+        plan_to_watch: rawArray.filter(item => item.node.my_list_status?.status === "plan_to_watch")
+    }
+
+    return res
+    .status(200)
+    .json(new ApiResponse(200, sortedCatalog, 'Categorized anime catalog served successfully'))
+})
+
 export {
     searchAnime,
     getAnimeDetails,
-    getSeasonal
+    getSeasonal,
+    getList
 }
