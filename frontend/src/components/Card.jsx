@@ -33,9 +33,6 @@ function Card({ anime }) {
             <h4 className='font-bold text-sm text-[#E6BD9E] leading-tight truncate group-hover:text-white transition-colors'>
               {anime.title || "Unknown Title"}
             </h4>
-            <p className='text-[10px] font-medium text-[#A46A44]/70 mt-0.5 font-mono truncate'>
-              {anime.airingPeriod || "Airing Dates Unavailable"}
-            </p>
           </div>
           
           {/* Touch Action Option Trigger (Ellipsis Dot Menu) */}

@@ -26,7 +26,7 @@ const searchAnime = asyncHandler(async (req, res) => {
             params: {
                 q: toSearch,
                 limit: 50,
-                fields: "synopsis,mean,rank,popularity,genres,num_episodes,my_list_status"
+                fields: "start_date,end_date,broadcast,synopsis,mean,rank,popularity,genres,num_episodes,my_list_status"
 
             }
         }
@@ -65,7 +65,7 @@ const getAnimeDetails = asyncHandler(async (req, res) => {
                 Authorization: `Bearer ${accessToken}`
             },
             params: {
-                fields: "synopsis,mean,rank,popularity,genres,num_episodes,my_list_status"
+                fields: "start_date,end_date,broadcast,synopsis,mean,rank,popularity,genres,num_episodes,my_list_status"
             }
         }
     )
@@ -98,7 +98,7 @@ const getSeasonal = asyncHandler(async (req, res) => {
             params: {
                 sort: "anime_score",
                 limit: 50,
-                fields: "synopsis,mean,rank,popularity,genres,num_episodes,my_list_status"
+                fields: "start_date,end_date,broadcast,synopsis,mean,rank,popularity,genres,num_episodes,my_list_status"
             }
         }
     )
@@ -125,7 +125,7 @@ const getList = asyncHandler(async (req, res) => {
             params: {
                 sort: "list_updated_at",
                 limit: 1000,
-                fields: "synopsis,mean,rank,popularity,genres,num_episodes,my_list_status"
+                fields: "start_date,end_date,broadcast,synopsis,mean,rank,popularity,genres,num_episodes,my_list_status"
             }
         }
     )
