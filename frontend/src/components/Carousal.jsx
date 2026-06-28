@@ -39,7 +39,7 @@ function Carousal({
           className="w-full flex space-x-4 overflow-x-auto scrollbar-none pb-2"
         >
           {list.length > 0 ? (
-            list.map((anime) => (
+            list.map((anime) => (anime.mal_id &&
               <div 
                 key={anime.mal_id}
                 onClick={() => onAnimeSelect?.(anime.mal_id)}

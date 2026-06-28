@@ -10,6 +10,10 @@ function Dashboard() {
 
   const [activeTab, setActiveTab] = useState('watching')
   const [selectedAnimeId, setSelectedAnimeId] = useState(null)
+
+  const [search, setSearch] = useState("")
+  const [searchResults, setSearchResults] = useState([])
+  const [searching, setSearching] = useState(false)
   
   useEffect(() => {
     const fetchUserCatalog = async () => {
@@ -51,9 +55,18 @@ function Dashboard() {
           return items.id === onScreen ? (
             <ComponentToRender 
             key={items.id} 
+
             onAnimeSelect={setSelectedAnimeId}
+
             activeTab={activeTab}
             setActiveTab={setActiveTab} 
+
+            search={search}
+            setSearch={setSearch}
+            searchResults={searchResults}
+            setSearchResults={setSearchResults}
+            searching={searching}
+            setSearching={setSearching}
             />
           ) : null
         })

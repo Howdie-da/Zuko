@@ -74,9 +74,9 @@ function AnimeDetails({ animeId, onClose }) {
             <span className="group-hover:-translate-x-0.5 transition-transform">{"<"}</span>
           </button>
 
-          <div className="group flex items-center justify-center px-1 w-15 h-10 bg-[#200800]/80 backdrop-blur-md border border-[#A46A44]/30 rounded-xl text-[#A46A44] shadow-xl">
+          <div className="group text-xs flex items-center justify-center px-1 w-13 h-10 bg-[#200800]/80 backdrop-blur-md border border-[#A46A44]/30 rounded-xl text-[#A46A44] shadow-xl">
             <svg 
-              className="w-4 h-4 mr-1 text-[#A77510] drop-shadow-[0_0_5px_rgba(167,117,16,0.6)]" 
+              className="w-3.5 h-3.5w-3.5 mr-1 text-[#A77510] drop-shadow-[0_0_5px_rgba(167,117,16,0.6)]" 
               fill="currentColor" 
               viewBox="0 0 20 20"
             >

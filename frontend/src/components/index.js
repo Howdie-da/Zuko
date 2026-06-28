@@ -8,5 +8,6 @@ import Schedule from "./Schedule";
 import Stats from "./Stats";
 import AnimeDetails from "./AnimeDetails";
 import Carousal from "./Carousal";
+import SearchCard from "./SearchCard";
 
-export { Button1, Button2, AuthLayout, Card, ListView, Discover, Schedule, Stats, AnimeDetails, Carousal }
+export { Button1, Button2, AuthLayout, Card, ListView, Discover, Schedule, Stats, AnimeDetails, Carousal, SearchCard }

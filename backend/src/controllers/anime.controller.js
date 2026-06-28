@@ -4,29 +4,56 @@ import { ApiResponse } from '../utils/ApiResponse.js'
 import axios from 'axios'
 
 const searchAnime = asyncHandler(async (req, res) => {
-    const { q, genres, producers, limit } = req.query || req.body || req.params
-    
+    const { q } = req.query;
+
+    if (!q || !q.trim()) {
+        return res.status(200).json(new ApiResponse(200, [], "Empty query"));
+    }
+
+    const query = `
+      query ($search: String) {
+        Page(page: 1, perPage: 12) {
+          media(search: $search, type: ANIME, isAdult: false) {
+            id
+            idMal
+            title { english romaji }
+            coverImage { extraLarge }
+            status
+            averageScore
+          }
+        }
+      }
+    `;
+
     try {
-        const response = await axios.get(`https://api.jikan.moe/v4/anime`, {
-            params: {
-                q,
-                genres,
-                producers,
-                limit: limit || 20
-            }
-        })
+        const response = await axios.post('https://graphql.anilist.co', {
+            query,
+            variables: { search: q }
+        });
+
+        const rawMedia = response.data?.data?.Page?.media || [];
+
+        const formattedResults = rawMedia.map(anime => ({
+            mal_id: anime.idMal || anime.id, 
+            title: anime.title.english || anime.title.romaji,
+            images: {
+                jpg: {
+                    large_image_url: anime.coverImage.extraLarge
+                }
+            },
+            score: anime.averageScore ? (anime.averageScore / 10).toFixed(1) : 0,
+            status: anime.status ? anime.status.toLowerCase().replace(/_/g, ' ') : 'unknown'
+        }));
 
         return res
-        .status(200)
-        .json(new ApiResponse(200, response.data.data))
+            .status(200)
+            .json(new ApiResponse(200, formattedResults, "Search query executed successfully"));
 
     } catch (error) {
-        const statusCode = error.response?.status || 500
-        const message = error.response?.data?.message || "Upstream catalog sync failed"
-        
-        throw new ApiError(statusCode, message)
+        console.error("Upstream Search Pipe Error:", error.response?.data || error.message);
+        throw new ApiError(500, "Failed to fetch search results from upstream network");
     }
-})
+});
 
 const getAnimeDetails = asyncHandler(async (req, res) => {
     const animeId = req.query?.animeId || req.body?.animeId || req.params?.animeId

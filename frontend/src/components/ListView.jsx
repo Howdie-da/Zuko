@@ -1,6 +1,7 @@
-import React, { useMemo, useState } from 'react'
-import { useSelector } from 'react-redux'
+import React, { useMemo, useState, useEffect, useRef } from 'react'
+import { useSelector, useDispatch } from 'react-redux'
 import Card from './Card'
+import { setListScrollPosition } from '../store/animeSlice'
 
 const tabs = [
   { id: 'watching', label: 'WATCHING', activeClass: 'bg-[#A77510]/15 border-[#A77510]/40 text-[#A77510] shadow-[0_0_15px_rgba(167,117,16,0.15)]'},
@@ -15,6 +16,28 @@ function ListView({
   activeTab,
   setActiveTab
 }) {
+
+  const dispatch = useDispatch()
+  const scrollPosition = useSelector(state => state.anime.listScrollPosition)
+
+  const currentScrollRef = useRef(0)
+
+  useEffect(() => {
+    const handleScroll = () => {
+      currentScrollRef.current = window.scrollY
+    }
+    window.addEventListener('scroll', handleScroll)
+
+    const timer = setTimeout(() => {
+      window.scrollTo(0, scrollPosition)
+    }, 15)
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      clearTimeout(timer)
+      dispatch(setListScrollPosition(currentScrollRef.current))
+    }
+  }, [dispatch])
 
   // 2. Safely grab the segmented lists from global Redux cache
   const animeLists = useSelector(state => state.anime)

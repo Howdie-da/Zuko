@@ -6,7 +6,10 @@ const initialState = {
     on_hold: [],
     dropped: [],
     plan_to_watch: [],
-    status: false
+    status: false,
+
+    listScrollPosition: 0,
+    discoverScrollPosition: 0
 }
 
 const animeSlice = createSlice({
@@ -30,9 +33,15 @@ const animeSlice = createSlice({
             state.dropped = []
             state.plan_to_watch = []
             state.status = false
-        }
+        },
+        setListScrollPosition: (state, action) => {
+            state.listScrollPosition = action.payload
+        },
+        setDiscoverScrollPosition: (state, action) => {
+            state.discoverScrollPosition = action.payload
+        },
     }
 })
 
-export const { setList, clearAll } = animeSlice.actions
+export const { setList, clearAll, setListScrollPosition, setDiscoverScrollPosition } = animeSlice.actions
 export default animeSlice.reducer
