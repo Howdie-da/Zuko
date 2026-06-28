@@ -1,28 +1,52 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
+import apiClient from '../services/api.js'
 
 function AnimeDetails({ animeId, onClose }) {
-  // 1. In production, pull the full item data from your Redux store or local search cache matching the animeId
+  const [networkAnime, setNetworkAnime] = useState(null)
   const animeLists = useSelector(state => state.anime)
   
-  // Flatten all slices to find the target anime object instantly
   const allAnime = [...animeLists.watching, ...animeLists.completed, ...animeLists.on_hold, ...animeLists.plan_to_watch, ...animeLists.dropped]
-  const target = allAnime.find(item => item.node.id === animeId)
+  const localTarget = allAnime.find(item => item.node.id === animeId)
 
-  if (!target) return null
+  useEffect(() => {
+    if (localTarget) {
+      setNetworkAnime(null)
+      return
+    }
 
-  // Clean payload destructuring mapping loop
+    const fetchDetails = async () => {
+      try {
+        const response = await apiClient.get(`/anime/anime?animeId=${animeId}`)
+        if(response.data?.data) setNetworkAnime(response.data.data)
+      } catch (error) {
+        console.log("Failed to fetch anime details: ", error)
+      }
+    }
+
+    fetchDetails()
+  }, [animeId, localTarget])
+
+  const target = localTarget?.node || networkAnime
+
   const anime = {
-    title: target.node.title,
-    image: target.node.main_picture?.large || target.node.main_picture?.medium,
-    currentEp: target.node.my_list_status?.num_episodes_watched || 0,
-    totalEp: target.node.num_episodes || 0,
-    score: target.node.my_list_status?.score || 0,
-    status: target.node.my_list_status?.status || 'plan_to_watch',
-    synopsis: target.node.synopsis || "No data sync loaded from MyAnimeList portal.",
-    airingStart: target.node.start_date || "Unknown",
-    airingEnd: target.node.end_date || "Unfinished",
-    broadcastDay: target.node.broadcast?.day_of_the_week || "N/A"
+    title: target?.title,
+    image: target?.main_picture?.large || target?.main_picture?.medium || target?.images?.jpg?.large_image_url || target?.images?.jpg?.image_url,
+    currentEp: target?.my_list_status?.num_episodes_watched || 0,
+    totalEp: target?.num_episodes || target?.episodes || 0,
+    score: target?.my_list_status?.score || 0,
+    rating: target?.mean || target?.score ||  '?',
+    status: target?.my_list_status?.status || target?.status || 'plan_to_watch',
+    synopsis: target?.synopsis || "No synopsis is fetched.",
+    airingStart: target?.start_date || target?.aired?.from?.split('T')?.[0] || "Unknown",
+
+    airingEnd: target?.end_date || (target?.aired?.to ? target.aired.to.split('T')[0] : null) 
+    ? (target?.end_date || target?.aired?.to?.split('T')[0])
+    : (target?.my_list_status?.status === "completed" || target?.status === "Finished Airing")
+      ? ("")
+      : "Unfinished",
+
+    broadcastDay: target?.broadcast?.day_of_the_week || target?.broadcast?.day || "N/A"
   }
 
   const progressPercent = anime.totalEp > 0 ? (anime.currentEp / anime.totalEp) * 100 : 0
@@ -49,6 +73,17 @@ function AnimeDetails({ animeId, onClose }) {
           >
             <span className="group-hover:-translate-x-0.5 transition-transform">{"<"}</span>
           </button>
+
+          <div className="group flex items-center justify-center px-1 w-15 h-10 bg-[#200800]/80 backdrop-blur-md border border-[#A46A44]/30 rounded-xl text-[#A46A44] shadow-xl">
+            <svg 
+              className="w-4 h-4 mr-1 text-[#A77510] drop-shadow-[0_0_5px_rgba(167,117,16,0.6)]" 
+              fill="currentColor" 
+              viewBox="0 0 20 20"
+            >
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+            </svg>
+            {anime.rating}
+          </div>
         </div>
       </header>
 
@@ -122,7 +157,7 @@ function AnimeDetails({ animeId, onClose }) {
           <div className="bg-[#200800]/30 border border-[#A46A44]/10 rounded-2xl p-4 flex flex-col">
             <span className="text-[10px] font-mono tracking-widest text-[#A46A44] uppercase block">AIRING INTERVAL:</span>
             <span className="text-xs font-bold font-mono text-gray-200 mt-2 uppercase tracking-wide">
-              {anime.airingStart} - {anime.airingEnd}
+              {anime.airingStart} {anime.airingEnd ? '-' : ''} <br/> {anime.airingEnd}
             </span>
           </div>
 

@@ -4,108 +4,82 @@ import { ApiResponse } from '../utils/ApiResponse.js'
 import axios from 'axios'
 
 const searchAnime = asyncHandler(async (req, res) => {
-    const accessToken = req.cookies?.access_token
+    const { q, genres, producers, limit } = req.query || req.body || req.params
     
-    if (!accessToken) {
-        throw new ApiError(401, "Authentication Failed")
-    }
-    
-    const toSearch = req.query?.toSearch || req.body?.toSearch
-    const hideAdded = req.query?.hideAdded === "true" || req.body?.hideAdded === true
-
-    if (toSearch.length < 3) {
-        throw new ApiError(400, "Anime name should be atleast 3 character long.")
-    }
-
-    const response = await axios.get(
-        "https://api.myanimelist.net/v2/anime",
-        {
-            headers: {
-                Authorization: `Bearer ${accessToken}`
-            },
+    try {
+        const response = await axios.get(`https://api.jikan.moe/v4/anime`, {
             params: {
-                q: toSearch,
-                limit: 50,
-                fields: "start_date,end_date,broadcast,synopsis,mean,rank,popularity,genres,num_episodes,my_list_status"
-
+                q,
+                genres,
+                producers,
+                limit: limit || 20
             }
-        }
-    )
+        })
 
-    let animeResults = response.data.data
+        return res
+        .status(200)
+        .json(new ApiResponse(200, response.data.data))
 
-    if (hideAdded) {
-        animeResults = animeResults.filter(
-            (item) => !item.node.my_list_status || !item.node.my_list_status.status
-        )
+    } catch (error) {
+        const statusCode = error.response?.status || 500
+        const message = error.response?.data?.message || "Upstream catalog sync failed"
+        
+        throw new ApiError(statusCode, message)
     }
-
-    return res
-    .status(200)
-    .json(new ApiResponse(200, animeResults, "Anime search results fetched successfully"))
 })
 
 const getAnimeDetails = asyncHandler(async (req, res) => {
-    const accessToken = req.cookies?.access_token
-
-    if (!accessToken) {
-        throw new ApiError(401, "Authentication Failed")
-    }
-
-    const animeId = req.query?.animeId || req.body?.animeId
+    const animeId = req.query?.animeId || req.body?.animeId || req.params?.animeId
 
     if (!animeId) {
-        throw new ApiError(400, "Anime ID is required to fetch")
+        throw new ApiError(400, "Anime ID parameter is strictly required")
     }
+    
+    try {
+        const response = await axios.get(`https://api.jikan.moe/v4/anime/${animeId}`)
 
-    const response = await axios.get(
-        `https://api.myanimelist.net/v2/anime/${animeId}`,
-        {
-            headers: {
-                Authorization: `Bearer ${accessToken}`
-            },
-            params: {
-                fields: "start_date,end_date,broadcast,synopsis,mean,rank,popularity,genres,num_episodes,my_list_status"
-            }
-        }
-    )
+        return res
+            .status(200)
+            .json(new ApiResponse(200, response.data.data))
 
-    return res
-    .status(200)
-    .json(new ApiResponse(200, response.data, `Anime Details for ${animeId}`))
+    } catch (error) {
+        const statusCode = error.response?.status || 500
+        const message = error.response?.data?.message || "Upstream catalog sync failed"
+        
+        throw new ApiError(statusCode, message)
+    }
 })
 
 const getSeasonal = asyncHandler(async (req, res) => {
-    const accessToken = req.cookies?.access_token
-
-    if (!accessToken) {
-        throw new ApiError(401, "Authentication Failed")
-    }
-
-    const year = req.query?.year || req.body?.year
-    const season = req.query?.season || req.body?.season
+    const year = req.query?.year || req.body?.year || req.params?.year
+    const season = req.query?.season || req.body?.season || req.params?.season
 
     if (!year || !season) {
-        throw new ApiError(400, "Choose Year and Season to fetch")
+        throw new ApiError(400, "Query parameters are strictly required")
     }
+    
+    try {
+        const page = req.query?.page || 1
+        const limit = req.query?.limit || 20
 
-    const response = await axios.get(
-        `https://api.myanimelist.net/v2/anime/season/${year}/${season}`,
-        {
-            headers: {
-                Authorization: `Bearer ${accessToken}`
-            },
+        const response = await axios.get(`https://api.jikan.moe/v4/seasons/${year}/${season}`, {
             params: {
-                sort: "anime_score",
-                limit: 50,
-                fields: "start_date,end_date,broadcast,synopsis,mean,rank,popularity,genres,num_episodes,my_list_status"
+                page,
+                limit,
+                filter: 'tv'
             }
-        }
-    )
+        })
 
-    return res
-    .status(200)
-    .json(new ApiResponse(200, response.data, `Showing ${year} ${season} anime`))
+        return res
+        .status(200)
+        .json(new ApiResponse(200, response.data.data))
+
+    } catch (error) {
+        const statusCode = error.response?.status || 500
+        const message = error.response?.data?.message || "Upstream catalog sync failed"
+        
+        throw new ApiError(statusCode, message)
+    }
 })
 
 const getList = asyncHandler(async (req, res) => {
@@ -145,9 +119,101 @@ const getList = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, sortedCatalog, 'Categorized anime catalog served successfully'))
 })
 
+const getDiscover = asyncHandler(async (req, res) => {
+    const query = `
+      query {
+        trending: Page(page: 1, perPage: 15) {
+          media(sort: TRENDING_DESC, type: ANIME, isAdult: false) {
+            id
+            idMal
+            title { english romaji }
+            coverImage { extraLarge }
+          }
+        }
+        action: Page(page: 1, perPage: 15) {
+          media(genre_in: ["Action"], sort: SCORE_DESC, type: ANIME, isAdult: false) {
+            id
+            idMal
+            title { english romaji }
+            coverImage { extraLarge }
+          }
+        }
+        scifi: Page(page: 1, perPage: 15) {
+          media(genre_in: ["Sci-Fi"], sort: SCORE_DESC, type: ANIME, isAdult: false) {
+            id
+            idMal
+            title { english romaji }
+            coverImage { extraLarge }
+          }
+        }
+        shounen: Page(page: 1, perPage: 15) {
+          media(tag_in: ["Shounen"], sort: SCORE_DESC, type: ANIME, isAdult: false) {
+            id
+            idMal
+            title { english romaji }
+            coverImage { extraLarge }
+          }
+        }
+        seinen: Page(page: 1, perPage: 15) {
+          media(tag_in: ["Seinen"], sort: SCORE_DESC, type: ANIME, isAdult: false) {
+            id
+            idMal
+            title { english romaji }
+            coverImage { extraLarge }
+          }
+        }
+        isekai: Page(page: 1, perPage: 15) {
+          media(tag_in: ["Isekai"], sort: SCORE_DESC, type: ANIME, isAdult: false) {
+            id
+            idMal
+            title { english romaji }
+            coverImage { extraLarge }
+          }
+        }
+      }
+    `
+
+    try {
+        const response = await axios.post('https://graphql.anilist.co', { query });
+        const data = response.data?.data;
+
+        const mapToFrontendContract = (mediaArray) => {
+            if (!mediaArray) return [];
+            return mediaArray.map(anime => ({
+                mal_id: anime.idMal,
+                title: anime.title.english || anime.title.romaji,
+                images: {
+                    jpg: {
+                        large_image_url: anime.coverImage.extraLarge
+                    }
+                }
+            }));
+        };
+
+        const compoundPayload = {
+            trending: mapToFrontendContract(data?.trending?.media),
+            action: mapToFrontendContract(data?.action?.media),
+            scifi: mapToFrontendContract(data?.scifi?.media),
+            shounen: mapToFrontendContract(data?.shounen?.media),
+            seinen: mapToFrontendContract(data?.seinen?.media),
+            isekai: mapToFrontendContract(data?.isekai?.media)
+        };
+
+        return res
+            .status(200)
+            .json(new ApiResponse(200, compoundPayload, "Discover feed aggregated instantly via AniList GraphQL"));
+
+    } catch (error) {
+        console.error("AniList GraphQL Aggregation Crash:", error.response?.data || error.message);
+        const statusCode = error.response?.status || 500;
+        throw new ApiError(statusCode, "Upstream GraphQL engine failed to resolve layout queries");
+    }
+});
+
 export {
     searchAnime,
     getAnimeDetails,
     getSeasonal,
-    getList
+    getList,
+    getDiscover
 }

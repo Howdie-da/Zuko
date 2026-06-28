@@ -18,7 +18,6 @@ function Dashboard() {
         
         const response = await apiClient.get('/anime/my-list')
         if (response.data) {
-          console.log(response.data)
           dispatch(setList(response.data))
         }
       } catch (error) {

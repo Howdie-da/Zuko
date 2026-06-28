@@ -7,5 +7,6 @@ import Discover from "./Discover";
 import Schedule from "./Schedule";
 import Stats from "./Stats";
 import AnimeDetails from "./AnimeDetails";
+import Carousal from "./Carousal";
 
-export { Button1, Button2, AuthLayout, Card, ListView, Discover, Schedule, Stats, AnimeDetails }
+export { Button1, Button2, AuthLayout, Card, ListView, Discover, Schedule, Stats, AnimeDetails, Carousal }
