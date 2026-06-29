@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { getAnimeDetails, getDiscover, getList, getSeasonal, searchAnime } from '../controllers/anime.controller.js'
+import { edit, getAnimeDetails, getDiscover, getList, getSeasonal, searchAnime } from '../controllers/anime.controller.js'
 
 const animeRouter = Router()
 
@@ -12,6 +12,8 @@ animeRouter.route("/season").get(getSeasonal)
 animeRouter.route("/my-list").get(getList)
 
 animeRouter.route("/discover").get(getDiscover)
+
+animeRouter.route("/edit").patch(edit)
 
 export {
     animeRouter

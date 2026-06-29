@@ -1,12 +1,53 @@
-import React from 'react'
+import React, { useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { editAnimeInState } from '../store/animeSlice'
+import { edit } from '../services/animeService.js'
 
-function Card({ anime }) {
+function Card({ anime, onAnimeSelect, menuAnime, setMenuAnime }) {
+  const dispatch = useDispatch()
   // Safe computation for the custom progress slider tracking line
   const totalEpisodes = anime.totalEp || 1 // Avoid division by zero crashes
   const progressPercent = Math.min((anime.currentEp / totalEpisodes) * 100, 100)
 
+  const isMenuOpen = String(menuAnime) === String(anime.id)
+
+  const handleMenuToggle = (e) => {
+    e.stopPropagation()
+    if (isMenuOpen) {
+      setMenuAnime(null)
+    } else {
+      setMenuAnime(`${anime.id}`)
+    }
+  }
+
+  const plusOne = async (e) => {
+    e.stopPropagation()
+    try {
+      const nextEps = anime.totalEp > 0 ? Math.min(anime.currentEp + 1, anime.totalEp) : anime.currentEp + 1
+      const nextStatus = (anime.totalEp > 0 && nextEps === anime.totalEp) ? 'completed' : 'watching'
+
+      await edit(anime.id, nextEps, anime.totalEp, anime.rating, nextStatus)
+
+      dispatch(editAnimeInState({
+        animeId: anime.id,
+        updatedFields: {
+          num_episodes_watched: nextEps,
+          status: nextStatus
+        }
+      }))
+
+      setMenuAnime("")
+    } catch (err) {
+      console.log("In-place state update failure:", err)
+    }
+  }
+
+  const isAuthenticated = useSelector(state => state.auth.isAuthenticated)
+
   return (
-    <div className='w-full h-22.5 bg-[#200800]/50 border border-[#A46A44]/15 rounded-xl overflow-hidden flex shadow-md hover:border-[#A77510]/30 transition-all duration-200 group select-none'>
+    <div 
+    onClick={() => onAnimeSelect(anime.id)}
+    className='w-full h-22.5 bg-[#200800]/50 border border-[#A46A44]/15 rounded-xl overflow-hidden flex shadow-md hover:border-[#A77510]/30 transition-all duration-200 group select-none'>
       
       {/* 1. LEFT POSTER THUMBNAIL */}
       <div className='w-16.25 h-full shrink-0 bg-neutral-900 overflow-hidden relative border-r border-[#A46A44]/10'>
@@ -24,10 +65,8 @@ function Card({ anime }) {
         )}
       </div>
 
-      {/* 2. CORE INFORMATION GRID CONTAINER */}
       <div className='grow p-2.5 flex flex-col justify-between relative min-w-0'>
         
-        {/* Top Info Tier: Title & Options Trigger */}
         <div className='flex justify-between items-start space-x-2'>
           <div className='min-w-0 flex-1'>
             <h4 className='font-bold text-sm text-[#E6BD9E] leading-tight truncate group-hover:text-white transition-colors'>
@@ -35,16 +74,53 @@ function Card({ anime }) {
             </h4>
           </div>
           
-          {/* Touch Action Option Trigger (Ellipsis Dot Menu) */}
-          <button 
-            onClick={(e) => {
-              e.stopPropagation() // Prevents triggering card click states
-              console.log(`Open menu for anime id: ${anime.id}`)
-            }}
-            className='text-[#A46A44] hover:text-[#E6BD9E] transition-colors font-bold text-sm px-1.5 py-0.5 cursor-pointer active:scale-90'
-          >
-            ⋮
-          </button>
+          {!isMenuOpen ? (
+            <button 
+              onClick={handleMenuToggle}
+              className='text-[#A46A44] hover:text-[#E6BD9E] transition-colors font-bold text-sm px-1.5 py-0.5 cursor-pointer active:scale-90'
+            >
+              ⋮
+            </button>
+          ) : (
+            <div 
+              onClick={(e) => e.stopPropagation()}
+              className='flex items-center space-x-1.5 bg-[#200800]/90 border border-[#A46A44]/30 rounded-xl px-2 py-1 animate-fade-in'
+            >
+              
+              <button 
+                onClick={(e) => { e.stopPropagation(); onAnimeSelect(anime.id); setMenuAnime(""); }}
+                className='text-[10px] font-mono font-bold tracking-wider text-[#E6BD9E] hover:text-white px-1.5 py-0.5 uppercase cursor-pointer'
+              >
+                Open
+              </button>
+              
+              {isAuthenticated && (
+                <>
+                <button 
+                  onClick={plusOne}
+                  className='text-[10px] font-mono font-black tracking-wider text-[#A77510] hover:text-white px-1.5 py-0.5 uppercase cursor-pointer'
+                >
+                  +1
+                </button>
+                
+                <button 
+                  onClick={(e) => { e.stopPropagation(); console.log("Delete tracking handler"); }}
+                  className='text-[10px] font-mono font-bold tracking-wider text-rose-500 hover:text-rose-400 px-1.5 py-0.5 uppercase cursor-pointer'
+                >
+                  Delete
+                </button>
+                </>
+              )}
+              
+              <button 
+                onClick={(e) => { e.stopPropagation(); setMenuAnime(""); }}
+                className='text-[10px] font-mono font-bold tracking-wider text-[#A46A44] hover:text-[#E6BD9E] px-1.5 py-0.5 uppercase cursor-pointer'
+              >
+                Close
+              </button>
+            </div>
+          )}
+
         </div>
 
         {/* Bottom Info Tier: Counter, Progress Bar Track, Rating Badge */}

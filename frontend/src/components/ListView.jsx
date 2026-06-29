@@ -75,6 +75,8 @@ function ListView({
     }))
   }, [activeListToRender])
 
+  const [menuAnime, setMenuAnime] = useState("")
+
   return (
     <div 
       onTouchStart={handleTouchStart} 
@@ -124,10 +126,9 @@ function ListView({
           formattedAnimeList.map((anime) => (
             <div 
               key={anime.id}
-              onClick={() => onAnimeSelect(anime.id)} 
               className="cursor-pointer active:scale-[0.99] transition-transform will-change-transform"
             >
-              <Card anime={anime} />
+              <Card anime={anime} menuAnime={menuAnime} setMenuAnime={setMenuAnime} onAnimeSelect={onAnimeSelect} />
             </div>
           ))
         )}

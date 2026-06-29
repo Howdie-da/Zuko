@@ -237,10 +237,58 @@ const getDiscover = asyncHandler(async (req, res) => {
     }
 });
 
+import qs from 'qs'
+
+const edit = asyncHandler(async (req, res) => {
+    const accessToken = req.cookies?.access_token
+
+    if (!accessToken) {
+        throw new ApiError(401, "Authentication Failed")
+    }
+
+    const animeId = req.query?.animeId
+
+    if (!animeId) {
+        throw new ApiError(400, "Query parameter is required")
+    }
+
+    const { status, episodes, score } = req.body
+
+    try {
+        const formData = qs.stringify({
+            status,
+            score: score ? Number(score) : undefined,
+            num_watched_episodes: episodes ? Number(episodes) : undefined
+        })
+
+        const response = await axios.patch(
+            `https://api.myanimelist.net/v2/anime/${animeId}/my_list_status`,
+            formData,
+            {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            }
+        )
+
+        return res
+            .status(200)
+            .json(new ApiResponse(200, response.data, "Updation is Successful"))
+
+    } catch (error) {
+        throw new ApiError(
+            error.response?.status || 500, 
+            error.response?.data?.message || "Failed to update status tracking parameters inside upstream network node"
+        )
+    }
+})
+
 export {
     searchAnime,
     getAnimeDetails,
     getSeasonal,
     getList,
-    getDiscover
+    getDiscover,
+    edit
 }
