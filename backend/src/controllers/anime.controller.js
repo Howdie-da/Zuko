@@ -257,8 +257,8 @@ const edit = asyncHandler(async (req, res) => {
     try {
         const formData = qs.stringify({
             status,
-            score: score ? Number(score) : undefined,
-            num_watched_episodes: episodes ? Number(episodes) : undefined
+            score: score ? Number(score) : 0,
+            num_watched_episodes: episodes ? Number(episodes) : 0
         })
 
         const response = await axios.patch(

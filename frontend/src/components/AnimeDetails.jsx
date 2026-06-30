@@ -150,22 +150,21 @@ function AnimeDetails({ animeId, onClose }) {
 
     let finalEp = currEp
     let finalStatus = currStatus
-
-    if (finalStatus === 'completed' && finalEp !== anime.totalEp) {
-      finalStatus = 'plan_to_watch'
-    }
-
-    if (anime.totalEp > 0 && finalEp >= anime.totalEp) {
-      finalEp = anime.totalEp
-      finalStatus = 'completed'
-    }
-
-    if (finalEp > 0 && finalStatus === 'plan_to_watch') {
-      finalStatus = 'watching'
-    }
-
-    if (finalEp === 0) {
-      finalStatus = 'plan_to_watch'
+    
+    if (anime.totalEp === 0) {
+      if (finalEp === 0) {
+        finalStatus = "plan_to_watch"
+      } else {
+        finalStatus = (finalStatus === "plan_to_watch" || finalStatus === "completed") ? "watching" : finalStatus
+      }
+    } else {
+      if (finalEp === 0) {
+        finalStatus = "plan_to_watch"
+      } else if (finalEp !== anime.totalEp) {
+        finalStatus = (finalStatus === "plan_to_watch" || finalStatus === "completed") ? "watching" : finalStatus
+      } else {
+        finalStatus = "completed"
+      }
     }
 
     setIsSaving(true)
