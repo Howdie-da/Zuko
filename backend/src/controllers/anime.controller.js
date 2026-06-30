@@ -284,11 +284,43 @@ const edit = asyncHandler(async (req, res) => {
     }
 })
 
+const deleteAnime = asyncHandler(async (req, res) => {
+    const accessToken = req.cookies?.access_token
+
+    if (!accessToken) {
+        throw new ApiError(401, "Authentication Failed")
+    }
+
+    const animeId = req.query?.animeId
+
+    if (!animeId) {
+        throw new ApiError(400, "Query parameter is required")
+    }
+
+    try {
+        const response = await axios.delete(
+            `https://api.myanimelist.net/v2/anime/${animeId}/my_list_status`,
+            {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`
+                }
+            }
+        )
+
+        return res
+        .status(200)
+        .json(new ApiResponse(200, response.data, "Deletion Successful"))
+    } catch (error) {
+        throw new ApiError(500, "Internal Error Occured: ")
+    }
+})
+
 export {
     searchAnime,
     getAnimeDetails,
     getSeasonal,
     getList,
     getDiscover,
-    edit
+    edit,
+    deleteAnime
 }

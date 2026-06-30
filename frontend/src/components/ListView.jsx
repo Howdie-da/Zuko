@@ -14,7 +14,8 @@ const tabs = [
 function ListView({
   onAnimeSelect,
   activeTab,
-  setActiveTab
+  setActiveTab,
+  setDeletingAnime
 }) {
 
   const dispatch = useDispatch()
@@ -128,7 +129,11 @@ function ListView({
               key={anime.id}
               className="cursor-pointer active:scale-[0.99] transition-transform will-change-transform"
             >
-              <Card anime={anime} menuAnime={menuAnime} setMenuAnime={setMenuAnime} onAnimeSelect={onAnimeSelect} />
+              <Card 
+              anime={anime} menuAnime={menuAnime} setMenuAnime={setMenuAnime} onAnimeSelect={onAnimeSelect} 
+              setDeletingAnime={setDeletingAnime}
+              />
+              
             </div>
           ))
         )}

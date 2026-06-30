@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import apiClient from '../services/api.js'
-import { setList } from '../store/animeSlice.js'
-import { AnimeDetails, Card, Discover, ListView, Schedule, Stats } from '../components/index.js'
+import { deleteAnimeFromState, setList } from '../store/animeSlice.js'
+import { AnimeDetails, Card, Discover, ListView, Schedule, Stats, Dialog } from '../components/index.js'
+import { deleteAnime } from '../services/animeService.js'
 
 function Dashboard() {
   const dispatch = useDispatch()
@@ -14,6 +15,7 @@ function Dashboard() {
   const [search, setSearch] = useState("")
   const [searchResults, setSearchResults] = useState([])
   const [searching, setSearching] = useState(false)
+
   
   useEffect(() => {
     const fetchUserCatalog = async () => {
@@ -30,19 +32,59 @@ function Dashboard() {
     }
     fetchUserCatalog()
   }, [isAuthenticated, dispatch])
-
+  
   const screens = [
     { id: 'list', comp: ListView },
     { id: 'discover', comp: Discover },
     { id: 'schedule', comp: Schedule },
     { id: 'stats', comp: Stats },
   ]
+  
+  const [deletingAnime, setDeletingAnime] = useState(null)
+
+  useEffect(() => {
+    if (deletingAnime) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [deletingAnime])
+
+  const handleDeleteConfirm = async () => {
+    if (!deletingAnime) return
+    
+    const animeId = deletingAnime.id
+    try {
+      await deleteAnime(animeId)
+      dispatch(deleteAnimeFromState({ animeId }))
+      
+      setDeletingAnime(null) 
+    } catch (error) {
+      console.error("Could not delete the entry!!", error)
+    }
+  }
 
   const [onScreen, setOnScreen] = useState('list')
 
   return (
     <div className='bg-[#571e0b] min-h-screen relative select-none overflow-x-hidden'>
       <div className='absolute inset-0 bg-linear-to-b from-[#200800]/60 via-[#441100]/40 to-[#200800] z-0' />
+
+      
+        <Dialog
+        isOpen={Boolean(deletingAnime)}
+        onConfirm={handleDeleteConfirm}
+        onClose={() => setDeletingAnime(null)}
+        message={"Do you want to Delete?"}
+        animeName={deletingAnime?.title}
+        option1={"Yes"}
+        option2={"No"}
+        />
+      
 
       {selectedAnimeId ? (
         <AnimeDetails 
@@ -67,6 +109,8 @@ function Dashboard() {
             setSearchResults={setSearchResults}
             searching={searching}
             setSearching={setSearching}
+            
+            setDeletingAnime={setDeletingAnime}
             />
           ) : null
         })

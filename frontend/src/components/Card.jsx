@@ -1,12 +1,17 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { editAnimeInState } from '../store/animeSlice'
-import { edit } from '../services/animeService.js'
+import { deleteAnimeFromState, editAnimeInState } from '../store/animeSlice'
+import { edit, deleteAnime } from '../services/animeService.js'
 
-function Card({ anime, onAnimeSelect, menuAnime, setMenuAnime }) {
+function Card({ 
+  anime, 
+  onAnimeSelect, 
+  menuAnime, 
+  setMenuAnime,
+  setDeletingAnime
+}) {
   const dispatch = useDispatch()
-  // Safe computation for the custom progress slider tracking line
-  const totalEpisodes = anime.totalEp || 1 // Avoid division by zero crashes
+  const totalEpisodes = anime.totalEp || 1
   const progressPercent = Math.min((anime.currentEp / totalEpisodes) * 100, 100)
 
   const isMenuOpen = String(menuAnime) === String(anime.id)
@@ -39,6 +44,18 @@ function Card({ anime, onAnimeSelect, menuAnime, setMenuAnime }) {
       setMenuAnime("")
     } catch (err) {
       console.log("In-place state update failure:", err)
+    }
+  }
+
+  const deleteEntry = async () => {
+    const animeId = anime.id
+
+    try {
+      const response = await deleteAnime(animeId)
+
+      dispatch(deleteAnimeFromState({ animeId }))
+    } catch (error) {
+      console.log("Could not delete the entry!!")
     }
   }
 
@@ -104,7 +121,7 @@ function Card({ anime, onAnimeSelect, menuAnime, setMenuAnime }) {
                 </button>
                 
                 <button 
-                  onClick={(e) => { e.stopPropagation(); console.log("Delete tracking handler"); }}
+                  onClick={(e) => { e.stopPropagation(); setDeletingAnime(anime); }}
                   className='text-[10px] font-mono font-bold tracking-wider text-rose-500 hover:text-rose-400 px-1.5 py-0.5 uppercase cursor-pointer'
                 >
                   Delete

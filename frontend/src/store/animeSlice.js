@@ -93,9 +93,22 @@ const animeSlice = createSlice({
             if (!alreadyExists) {
                 state[destinationKey].unshift(newEntry)
             }
+        },
+        deleteAnimeFromState: (state, action) => {
+            const { animeId } = action.payload
+            const subLists = ['watching', 'plan_to_watch', 'on_hold', 'completed', 'dropped']
+
+            for (const listKey of subLists) {
+                const idx = state[listKey].findIndex(item => item.node.id === animeId)
+                
+                if (idx !== -1) {
+                    state[listKey].splice(idx, 1)
+                    break
+                }
+            }
         }
     }
 })
 
-export const { setList, clearAll, setListScrollPosition, setDiscoverScrollPosition, editAnimeInState, addAnimeToState } = animeSlice.actions
+export const { setList, clearAll, setListScrollPosition, setDiscoverScrollPosition, editAnimeInState, addAnimeToState, deleteAnimeFromState } = animeSlice.actions
 export default animeSlice.reducer

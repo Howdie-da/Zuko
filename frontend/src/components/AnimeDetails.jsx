@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import apiClient from '../services/api.js'
-import { edit } from '../services/animeService.js'
-import { addAnimeToState, editAnimeInState } from '../store/animeSlice.js'
+import { deleteAnime, edit } from '../services/animeService.js'
+import { addAnimeToState, deleteAnimeFromState, editAnimeInState } from '../store/animeSlice.js'
+import Dialog from './Dialog.jsx'
 
 function AnimeDetails({ animeId, onClose }) {
   const dispatch = useDispatch()
@@ -76,7 +77,7 @@ function AnimeDetails({ animeId, onClose }) {
     setCurrStatus(anime.status)
   }, [anime.currentEp, anime.score, anime.status])
 
-  const backBuffer = anime.currentEp < 30 ? anime.currentEp : 10
+  const backBuffer = 20
   const forwardBuffer = 50
 
   const startEp = Math.max(0, anime.currentEp - backBuffer)
@@ -93,7 +94,8 @@ function AnimeDetails({ animeId, onClose }) {
     { key: 'completed', label: 'Completed' },
     { key: 'on_hold', label: 'On Hold' },
     { key: 'dropped', label: 'Dropped' },
-    { key: 'plan_to_watch', label: 'Plan to Watch' }
+    { key: 'plan_to_watch', label: 'Plan to Watch' },
+    { key: 'delete', label: 'Delete' }
   ]
 
   const inList = statusOptions.some((item) => item.key === anime.status)
@@ -129,19 +131,60 @@ function AnimeDetails({ animeId, onClose }) {
   const handleSave = async () => {
     if (!changes) return
 
+    if (currStatus === 'delete') {
+      setIsSaving(true)
+      try {
+        await deleteAnime(animeId)
+
+        dispatch(deleteAnimeFromState({ animeId }))
+
+        onClose()
+        return
+      } catch (error) {
+        console.error("Could not delete the entry!! Error trace: ", error)
+      } finally {
+        setIsSaving(false)
+      }
+      return
+    }
+
+    let finalEp = currEp
+    let finalStatus = currStatus
+
+    if (finalStatus === 'completed' && finalEp !== anime.totalEp) {
+      finalStatus = 'plan_to_watch'
+    }
+
+    if (anime.totalEp > 0 && finalEp >= anime.totalEp) {
+      finalEp = anime.totalEp
+      finalStatus = 'completed'
+    }
+
+    if (finalEp > 0 && finalStatus === 'plan_to_watch') {
+      finalStatus = 'watching'
+    }
+
+    if (finalEp === 0) {
+      finalStatus = 'plan_to_watch'
+    }
+
     setIsSaving(true)
     try {
-      const response = await edit(animeId, currEp, anime.totalEp, currRating, currStatus)
+      const response = await edit(animeId, finalEp, anime.totalEp, currRating, finalStatus)
 
       if (response.status === 200 || response.data) {
         dispatch(editAnimeInState({
           animeId,
           updatedFields: {
-            num_episodes_watched: currEp,
+            num_episodes_watched: finalEp,
             score: currRating,
-            status: currStatus
+            status: finalStatus
           }
         }))
+
+        setCurrEp(finalEp)
+        setCurrStatus(finalStatus)
+
         setActiveEp(false)
         setActiveRating(false)
         setActiveStatus(false)
@@ -190,7 +233,8 @@ function AnimeDetails({ animeId, onClose }) {
     }
   }
 
-  // ================= 🌟 CLEAN EARLY GUARD RETURN FOR LOADING SCREEN =================
+  const [exiting, setExiting] = useState(false)
+
   if (isLoading) {
     return (
       <div className="w-full text-white relative flex flex-col min-h-screen justify-center items-center bg-[#200800]">
@@ -229,9 +273,15 @@ function AnimeDetails({ animeId, onClose }) {
     )
   }
 
-  // ================= MAIN RENDER PANEL CANVAS =================
   return (
     <div className="w-full text-white relative flex flex-col animate-fade-in">
+
+      <Dialog
+      isOpen={isAuthenticated && exiting && Boolean(changes)}
+      onConfirm={async () => {await handleSave(); setExiting(false); onClose()}}
+      onClose={() => {setExiting(false); onClose()}}
+      message={"Do you want exit without saving?"}
+      />
 
       {/* FULL BLEED SCREEN BACKDROP */}
       <div className="fixed inset-0 h-screen overflow-hidden z-10 select-none pointer-events-none">
@@ -247,7 +297,7 @@ function AnimeDetails({ animeId, onClose }) {
       <header className="fixed top-0 left-0 right-0 z-50 w-full max-w-4xl mx-auto px-6 pt-6 pointer-events-none">
         <div className="w-full flex items-center justify-between pointer-events-auto">
           <button 
-            onClick={onClose} 
+            onClick={() => {!changes ? onClose() : setExiting(true)}} 
             className="group flex items-center justify-center w-10 h-10 bg-[#200800]/80 backdrop-blur-md border border-[#A46A44]/30 rounded-xl text-[#A46A44] hover:text-[#E6BD9E] transition-all duration-300 shadow-xl cursor-pointer"
           >
             <span className="group-hover:-translate-x-0.5 transition-transform">{"<"}</span>

@@ -5,9 +5,11 @@ import { loginHandle } from '../services/authService'
 import apiClient from '../services/api'
 import { useDispatch, useSelector } from 'react-redux'
 import { setCreds } from '../store/authSlice'
+import { useNavigate } from 'react-router'
 
 function Home() {
   const dispatch = useDispatch()
+  const navigate = useNavigate();
   
   const isAuthenticated = useSelector(state => state.auth.isAuthenticated)
 
@@ -32,7 +34,7 @@ function Home() {
       
       {/* mix-blend-luminosity is the magic */}
       <div 
-        className='absolute inset-0 bg-cover bg-center z-0 mix-blend-luminosity opacity-40'
+        className='absolute inset-0 bg-cover bg-position-[38%] md:bg-center z-0 mix-blend-luminosity opacity-40'
         style={{ backgroundImage: `url(${zuko1})` }}
       />
 
@@ -43,11 +45,10 @@ function Home() {
         <div className='text-xl font-bold tracking-wider text-[#A77510]'>
           ZUKO.
         </div>
-        <nav className='hidden md:flex space-x-8 text-sm font-medium text-[#E6BD9E]/70'>
-          <a href='#features' className='hover:text-[#A77510] transition-colors'>Features</a>
-          <a href='#docs' className='hover:text-[#A77510] transition-colors'>API</a>
-          <a href='#login' className='hover:text-[#A77510] transition-colors'>Login</a>
-        </nav>
+        <div className='md:flex space-x-8 text-sm font-medium text-[#E6BD9E]/70'>
+          <button onClick={() => navigate('/dashboard')} className='hover:text-[#A77510] cursor-pointer transition-colors'>Dashboard</button>
+          <button onClick={loginHandle} className='hover:text-[#A77510] transition-colors cursor-pointer'>Login</button>
+        </div>
       </header>
 
       {/* adds a layer wiht z-axis = 10 for Interactive Content */}
