@@ -28,7 +28,7 @@ function ScheduleCard({ anime, onAnimeSelect }) {
         <div>
           <div className="flex items-center gap-2 mb-1.5">
             <span className="px-2 py-0.5 rounded-md bg-[#A77510]/10 border border-[#A77510]/30 text-[#A77510] text-[9px] font-mono font-black tracking-widest uppercase shadow-sm">
-              {anime.localBroadcastDay} • {anime.localBroadcastTime}
+              {anime.formattedBroadcast}
             </span>
           </div>
           

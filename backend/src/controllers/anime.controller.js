@@ -320,6 +320,11 @@ const getSeasonal = async (req, res) => {
               nextAiringEpisode {
                 episode
               }
+              airingSchedule(perPage: 1, notYetAired: true) {
+                nodes {
+                  airingAt
+                }
+              }
             }
           }
         }
@@ -352,6 +357,26 @@ const getSeasonal = async (req, res) => {
           released = 0;
         }
 
+        const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        let broadcastDay = "N/A";
+        let broadcastTime = "N/A";
+        let formattedBroadcast = "N/A";
+
+        const upcomingSchedule = anime.airingSchedule?.nodes?.[0];
+        if (upcomingSchedule?.airingAt) {
+          const date = new Date(upcomingSchedule.airingAt * 1000);
+          
+          broadcastDay = days[date.getDay()];
+          broadcastTime = date.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+          });
+          formattedBroadcast = `${broadcastDay} • ${broadcastTime}`;
+        } else if (anime.status === 'FINISHED') {
+          formattedBroadcast = "Finished Airing";
+        }
+
         return {
           id: anime.idMal,
           title: anime.title.english || anime.title.romaji,
@@ -360,7 +385,10 @@ const getSeasonal = async (req, res) => {
           releasedEp: released,
           rating: anime.averageScore ? (anime.averageScore / 10).toFixed(1) : 0,
           synopsis: anime.description || "No synopsis available.",
-          status: anime.status
+          status: anime.status,
+          broadcastDay,
+          broadcastTime,
+          formattedBroadcast
         };
       });
 

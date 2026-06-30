@@ -26,6 +26,8 @@ function Schedule({ onAnimeSelect }) {
   const [animeList, setAnimeList] = useState(cachedList)
   const [isLoading, setIsLoading] = useState(true)
 
+  console.log(animeList)
+
   useEffect(() => {
     if (cachedList.length > 0 && year === currYear && season === currSeason) {
       setAnimeList(cachedList)
@@ -44,7 +46,7 @@ function Schedule({ onAnimeSelect }) {
         if(year === currYear && season === currSeason) dispatch(loadSchedule(results))
         setAnimeList(results)
       } catch (error) {
-        console.error("Failed to fetch seasonal anime:", error)
+        console.log("Failed to fetch seasonal anime:", error)
         setAnimeList([])
       } finally {
         setIsLoading(false)
