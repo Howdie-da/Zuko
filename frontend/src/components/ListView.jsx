@@ -2,6 +2,8 @@ import React, { useMemo, useState, useEffect, useRef } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import Card from './Card'
 import { setListScrollPosition } from '../store/animeSlice'
+import Button2 from './Button2'
+import { loginHandle } from '../services/authService'
 
 const tabs = [
   { id: 'watching', label: 'WATCHING', activeClass: 'bg-[#A77510]/15 border-[#A77510]/40 text-[#A77510] shadow-[0_0_15px_rgba(167,117,16,0.15)]'},
@@ -20,6 +22,7 @@ function ListView({
 
   const dispatch = useDispatch()
   const scrollPosition = useSelector(state => state.anime.listScrollPosition)
+  const isAuthenticated = useSelector(state => state.auth.isAuthenticated)
 
   const currentScrollRef = useRef(0)
 
@@ -119,9 +122,16 @@ function ListView({
       <main className="flex-1 z-10 max-w-2xl w-full mx-auto px-4 mt-32 flex flex-col space-y-3 pb-32">
         {activeListToRender.length === 0 ? (
           <div className='w-full border border-dashed border-[#A46A44]/20 rounded-2xl py-16 text-center'>
-            <p className='text-[#A46A44] text-xs font-medium uppercase tracking-wider'>
+            <p className='text-[#A46A44] mb-6 text-xs font-medium uppercase tracking-wider'>
               No entries logged under {activeTab.replace(/_/g, ' ')}
             </p>
+            {!isAuthenticated && (
+              <Button2
+              onClick={loginHandle}
+              >
+                Login
+              </Button2>
+            )}
           </div>
         ) : (
           formattedAnimeList.map((anime) => (
