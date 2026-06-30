@@ -15,9 +15,11 @@ app.use(cookieParser())
 
 import { authRouter } from "./routes/auth.routes.js";
 import { animeRouter } from "./routes/anime.routes.js";
+import { userRouter } from "./routes/user.routes.js";
 
 app.use("/api/auth", authRouter)
 app.use("/api/anime", animeRouter)
+app.use("/api/user", userRouter)
 
 export {
     app

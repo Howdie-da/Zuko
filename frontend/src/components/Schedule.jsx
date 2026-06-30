@@ -26,8 +26,6 @@ function Schedule({ onAnimeSelect }) {
   const [animeList, setAnimeList] = useState(cachedList)
   const [isLoading, setIsLoading] = useState(true)
 
-  console.log(animeList)
-
   useEffect(() => {
     if (cachedList.length > 0 && year === currYear && season === currSeason) {
       setAnimeList(cachedList)
