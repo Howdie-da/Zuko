@@ -77,38 +77,6 @@ const getAnimeDetails = asyncHandler(async (req, res) => {
     }
 })
 
-const getSeasonal = asyncHandler(async (req, res) => {
-    const year = req.query?.year || req.body?.year || req.params?.year
-    const season = req.query?.season || req.body?.season || req.params?.season
-
-    if (!year || !season) {
-        throw new ApiError(400, "Query parameters are strictly required")
-    }
-    
-    try {
-        const page = req.query?.page || 1
-        const limit = req.query?.limit || 20
-
-        const response = await axios.get(`https://api.jikan.moe/v4/seasons/${year}/${season}`, {
-            params: {
-                page,
-                limit,
-                filter: 'tv'
-            }
-        })
-
-        return res
-        .status(200)
-        .json(new ApiResponse(200, response.data.data))
-
-    } catch (error) {
-        const statusCode = error.response?.status || 500
-        const message = error.response?.data?.message || "Upstream catalog sync failed"
-        
-        throw new ApiError(statusCode, message)
-    }
-})
-
 const getList = asyncHandler(async (req, res) => {
     const accessToken = req.cookies?.access_token
     const userId = req.cookies?.user_id
@@ -315,12 +283,105 @@ const deleteAnime = asyncHandler(async (req, res) => {
     }
 })
 
+const getCurrentSeason = () => {
+  const month = new Date().getMonth();
+  if (month >= 0 && month <= 2) return 'WINTER';
+  if (month >= 3 && month <= 5) return 'SPRING';
+  if (month >= 6 && month <= 8) return 'SUMMER';
+  return 'FALL';
+};
+
+const getSeasonal = async (req, res) => {
+  try {
+    const currentYear = new Date().getFullYear();
+    const queryYear = parseInt(req.query.year) || currentYear;
+    
+    const rawSeason = req.query.season ? req.query.season.toUpperCase() : getCurrentSeason();
+    const validSeasons = ['WINTER', 'SPRING', 'SUMMER', 'FALL'];
+    const querySeason = validSeasons.includes(rawSeason) ? rawSeason : getCurrentSeason();
+
+    const graphqlQuery = {
+      query: `
+        query ($season: MediaSeason, $seasonYear: Int, $perPage: Int) {
+          Page(page: 1, perPage: $perPage) {
+            media(type: ANIME, season: $season, seasonYear: $seasonYear, sort: [POPULARITY_DESC]) {
+              idMal
+              title {
+                english
+                romaji
+              }
+              coverImage {
+                large
+              }
+              episodes
+              averageScore
+              description
+              status
+              nextAiringEpisode {
+                episode
+              }
+            }
+          }
+        }
+      `,
+      variables: {
+        season: querySeason,
+        seasonYear: queryYear,
+        perPage: 50
+      }
+    };
+
+    const response = await axios.post('https://graphql.anilist.co', graphqlQuery, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      }
+    });
+
+    const rawAnimeList = response.data?.data?.Page?.media || [];
+
+    const validAnimeList = rawAnimeList
+      .filter(anime => anime.idMal !== null)
+      .map(anime => {
+        let released = 0;
+        if (anime.nextAiringEpisode) {
+          released = anime.nextAiringEpisode.episode - 1;
+        } else if (anime.status === 'FINISHED') {
+          released = anime.episodes || 0;
+        } else {
+          released = 0;
+        }
+
+        return {
+          id: anime.idMal,
+          title: anime.title.english || anime.title.romaji,
+          image: anime.coverImage.large,
+          totalEp: anime.episodes || 0,
+          releasedEp: released,
+          rating: anime.averageScore ? (anime.averageScore / 10).toFixed(1) : 0,
+          synopsis: anime.description || "No synopsis available.",
+          status: anime.status
+        };
+      });
+
+    return res.status(200).json(
+      new ApiResponse(200, {
+        activeFilter: { year: queryYear, season: querySeason },
+        results: validAnimeList
+      }, "Seasonal Anime Fetched Successfully")
+    );
+
+  } catch (error) {
+    throw new ApiError(500, "Internal Error Occurred While Fetching Seasons")
+  }
+};
+
 export {
     searchAnime,
     getAnimeDetails,
-    getSeasonal,
     getList,
     getDiscover,
     edit,
-    deleteAnime
+    deleteAnime,
+    getSeasonal
 }

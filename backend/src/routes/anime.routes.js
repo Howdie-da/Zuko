@@ -17,6 +17,8 @@ animeRouter.route("/edit").patch(edit)
 
 animeRouter.route("/delete").delete(deleteAnime)
 
+animeRouter.route("/schedule").get(getSeasonal)
+
 export {
     animeRouter
 }
