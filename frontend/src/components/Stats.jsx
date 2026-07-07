@@ -36,7 +36,7 @@ function Stats() {
 
   if (isLoading) {
     return (
-      <div className="w-full min-h-dvh flex items-center justify-center bg-[#100300] text-[#A46A44] font-mono text-xs tracking-widest animate-pulse">
+      <div className="w-full min-h-svh flex items-center justify-center bg-[#100300] text-[#A46A44] font-mono text-xs tracking-widest animate-pulse">
         LOADING ACCOUNT MANIFESTS...
       </div>
     )
