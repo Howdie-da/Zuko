@@ -137,13 +137,15 @@ function ListView({
           formattedAnimeList.map((anime) => (
             <div 
               key={anime.id}
-              className="cursor-pointer active:scale-[0.99] transition-transform will-change-transform"
+              className="cursor-pointer active:scale-[0.99] transition-transform will-change-transform contain-intrinsic-size-[120px] content-visibility-auto"
             >
               <Card 
-              anime={anime} menuAnime={menuAnime} setMenuAnime={setMenuAnime} onAnimeSelect={onAnimeSelect} 
-              setDeletingAnime={setDeletingAnime}
+                anime={anime} 
+                menuAnime={menuAnime} 
+                setMenuAnime={setMenuAnime} 
+                onAnimeSelect={onAnimeSelect} 
+                setDeletingAnime={setDeletingAnime}
               />
-              
             </div>
           ))
         )}
