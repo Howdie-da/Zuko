@@ -89,7 +89,7 @@ function Schedule({ onAnimeSelect }) {
 
   if (isLoading) {
     return (
-      <div className="w-full min-h-svh flex items-center justify-center bg-[#100300] text-[#A46A44] font-mono text-xs animate-pulse">
+      <div className="w-full min-h-svh flex items-center justify-center bg-transparent text-[#A46A44] font-mono text-xs animate-pulse">
         SYNCING SEASONAL ARCHIVE...
       </div>
     )
