@@ -72,7 +72,7 @@ function Dashboard() {
 
   return (
     <div className='bg-[#571e0b] min-h-screen relative select-none overflow-x-hidden'>
-      <div className='fixed inset-0 bg-linear-to-b from-[#200800]/60 via-[#441100]/40 to-[#200800] z-0' />
+      <div className='fixed top-0 left-0 w-full h-dvh bg-linear-to-b from-[#200800]/60 via-[#441100]/40 to-[#200800] z-0' />
 
       
         <Dialog
