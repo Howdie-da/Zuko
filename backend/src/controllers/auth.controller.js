@@ -13,7 +13,10 @@ const options = {
 const login = asyncHandler(async (req, res) => {
     const verifier = crypto.randomBytes(48).toString('base64url')
 
+    const returnTo = req.query.returnTo || '/';
+
     res.cookie("code_verifier", verifier, options)
+    res.cookie('return_to_path', returnTo, options);
 
     const malAuthUrl = `https://myanimelist.net/v1/oauth2/authorize?` +
                        `response_type=code` +
@@ -29,8 +32,11 @@ const callback = asyncHandler(async (req, res) => {
     const code = req.query?.code
     const verifier = req.cookies?.code_verifier
 
+    const returnTo = req.cookies.return_to_path || process.env.HOME_PAGE;
+    res.clearCookie('return_to_path');
+
     if (!code) {
-        return res.redirect(process.env.HOME_PAGE)
+        return res.redirect(returnTo)
     }
 
     const tokenPayload = {
@@ -83,7 +89,7 @@ const callback = asyncHandler(async (req, res) => {
     .cookie("access_token", access_token, options)
     .cookie("refresh_token", refresh_token, options)
     .cookie("user_id", user.malId, options)
-    .redirect(process.env.HOME_PAGE)
+    .redirect(returnTo)
 })
 
 const getProfile = asyncHandler(async (req, res) => {
