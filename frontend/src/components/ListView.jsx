@@ -4,6 +4,7 @@ import Card from './Card'
 import { setListScrollPosition } from '../store/animeSlice'
 import Button2 from './Button2'
 import { loginHandle } from '../services/authService'
+import { setCreds } from '../store/authSlice'; 
 
 import { useWindowVirtualizer } from '@tanstack/react-virtual'
 
@@ -92,6 +93,10 @@ function ListView({
     scrollMargin: listRef.current?.offsetTop ?? 0
   })
 
+  const handleAuthClick = () => {
+    loginHandle((userData) => dispatch(setCreds({ user: userData })))
+  }
+
   return (
     <div 
       onTouchStart={handleTouchStart} 
@@ -136,13 +141,13 @@ function ListView({
         style={{ height: `${virtualizer.getTotalSize()}px` }}
       >
         {activeListToRender.length === 0 ? (
-          <div className='w-full border border-dashed border-[#A46A44]/20 rounded-2xl py-16 text-center'>
+          <div className='w-full border border-dashed border-[#A46A44]/20 rounded-2xl mt-20 py-16 text-center'>
             <p className='text-[#A46A44] mb-6 text-xs font-medium uppercase tracking-wider'>
               No entries logged under {activeTab.replace(/_/g, ' ')}
             </p>
             {!isAuthenticated && (
               <Button2
-              onClick={loginHandle}
+              onClick={handleAuthClick}
               >
                 Login
               </Button2>
