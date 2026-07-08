@@ -103,7 +103,7 @@ const getProfile = asyncHandler(async (req, res) => {
         : null;
 
     const accessToken = bearer || req.cookies?.access_token;
-    
+
     console.log("Authorization:", req.headers.authorization);
     console.log("Cookies:", req.cookies);
         
@@ -111,19 +111,29 @@ const getProfile = asyncHandler(async (req, res) => {
         throw new ApiError(401, "User is not authenticated");
     }
 
-    const response = await axios.get(
-        "https://api.myanimelist.net/v2/users/@me",
-        {
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-            },
-        }
-    );
+    try {
+        const response = await axios.get(
+            "https://api.myanimelist.net/v2/users/@me",
+            {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                },
+            }
+        );
 
+        console.log("MAL SUCCESS:", response.data);
 
-    return res.status(200).json(
-        new ApiResponse(200, response.data, "User profile fetched Successfully")
-    );
+        return res.status(200).json(
+            new ApiResponse(200, response.data, "User profile fetched Successfully")
+        );
+
+    } catch (err) {
+        console.log("MAL STATUS:", err.response?.status);
+        console.log("MAL DATA:", err.response?.data);
+        console.log("MAL MESSAGE:", err.message);
+
+        throw err;
+    }
 });
 
 export {
