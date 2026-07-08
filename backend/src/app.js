@@ -4,14 +4,12 @@ import cookieParser from 'cookie-parser';
 
 const app = express();
 
-app.use(cors({
-    origin: [
-        process.env.CORS_ORIGIN,
-        'capacitor://localhost', 
-        'http://localhost'
-    ],
-    credentials: true
-}))
+const allowedOrigins = [
+    process.env.CORS_ORIGIN,
+    "https://localhost",
+    "http://localhost",
+    "capacitor://localhost",
+];
 
 app.use(
     cors({
@@ -22,7 +20,7 @@ app.use(
                 return callback(null, true);
             }
 
-            callback(new Error(`Origin ${origin} not allowed by CORS`));
+            return callback(new Error(`Origin ${origin} not allowed by CORS`));
         },
         credentials: true,
     })
