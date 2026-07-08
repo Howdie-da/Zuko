@@ -103,7 +103,10 @@ const getProfile = asyncHandler(async (req, res) => {
         : null;
 
     const accessToken = bearer || req.cookies?.access_token;
-
+    
+    console.log("Authorization:", req.headers.authorization);
+    console.log("Cookies:", req.cookies);
+        
     if (!accessToken) {
         throw new ApiError(401, "User is not authenticated");
     }
@@ -116,6 +119,7 @@ const getProfile = asyncHandler(async (req, res) => {
             },
         }
     );
+
 
     return res.status(200).json(
         new ApiResponse(200, response.data, "User profile fetched Successfully")
