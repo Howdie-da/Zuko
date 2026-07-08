@@ -98,7 +98,11 @@ const callback = asyncHandler(async (req, res) => {
 });
 
 const getProfile = asyncHandler(async (req, res) => {
-    const accessToken = req.cookies?.access_token;
+    const bearer = req.headers.authorization?.startsWith("Bearer ")
+        ? req.headers.authorization.slice(7)
+        : null;
+
+    const accessToken = bearer || req.cookies?.access_token;
 
     if (!accessToken) {
         throw new ApiError(401, "User is not authenticated");
@@ -113,9 +117,9 @@ const getProfile = asyncHandler(async (req, res) => {
         }
     );
 
-    return res
-        .status(200)
-        .json(new ApiResponse(200, response.data, "User profile fetched Successfully"));
+    return res.status(200).json(
+        new ApiResponse(200, response.data, "User profile fetched Successfully")
+    );
 });
 
 export {

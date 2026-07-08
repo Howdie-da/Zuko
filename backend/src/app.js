@@ -4,18 +4,29 @@ import cookieParser from 'cookie-parser';
 
 const app = express();
 
-app.use((req, res, next) => {
-    const origin = req.headers.origin;
-    res.header("Access-Control-Allow-Origin", origin || "*"); 
-    res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-    res.header("Access-Control-Allow-Credentials", "true");
-    
-    if (req.method === 'OPTIONS') {
-        return res.sendStatus(200);
-    }
-    next();
-});
+app.use(cors({
+    origin: [
+        process.env.CORS_ORIGIN,
+        'capacitor://localhost', 
+        'http://localhost'
+    ],
+    credentials: true
+}))
+
+app.use(
+    cors({
+        origin(origin, callback) {
+            if (!origin) return callback(null, true);
+
+            if (allowedOrigins.includes(origin)) {
+                return callback(null, true);
+            }
+
+            callback(new Error(`Origin ${origin} not allowed by CORS`));
+        },
+        credentials: true,
+    })
+);
 
 app.use(express.json({ limit: "16kb" }));
 app.use(cookieParser());
