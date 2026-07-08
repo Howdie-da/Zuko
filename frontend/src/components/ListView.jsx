@@ -132,7 +132,7 @@ function ListView({
       {/* CORE CARDS WRAPPER PANE */}
       <main 
         ref={listRef} 
-        className="z-10 max-w-2xl w-full mx-auto px-4 mt-32 relative pb-32"
+        className="z-10 max-w-2xl w-full mx-auto px-4 mt-18 relative pb-32"
         style={{ height: `${virtualizer.getTotalSize()}px` }}
       >
         {activeListToRender.length === 0 ? (

@@ -7,7 +7,8 @@ function Dialog({
   animeName = "", 
   option1, 
   option2, 
-  onConfirm
+  onConfirm,
+  onCross
 }) {
   if (!isOpen) return null
 
@@ -22,7 +23,7 @@ function Dialog({
       <div className="relative z-10 w-full max-w-md bg-[#200800]/90 backdrop-blur-md border border-[#A46A44]/30 rounded-2xl p-6 shadow-[0_20px_50px_rgba(0,0,0,0.7)] transform scale-100 transition-all duration-300 animate-scale-up">
         
         <button 
-          onClick={onClose}
+          onClick={onCross || onClose}
           className="absolute top-4 right-4 text-[#A46A44] hover:text-[#E6BD9E] font-mono text-sm transition-colors cursor-pointer"
         >
           ✕

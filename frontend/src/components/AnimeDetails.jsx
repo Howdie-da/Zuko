@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import apiClient from '../services/api.js'
 import { deleteAnime, edit } from '../services/animeService.js'
@@ -198,6 +198,35 @@ function AnimeDetails({ animeId, onClose }) {
 
   const [isAdding, setIsAdding] = useState(false)
 
+  const changesRef = useRef(changes)
+
+  useEffect(() => {
+    changesRef.current = changes
+  }, [changes])
+
+  useEffect(() => {
+    window.history.pushState({ modalOpen: true }, '')
+
+    const handlePopState = (e) => {
+      if (!changesRef.current) {
+        onClose()
+      } else {
+        setExiting(true)
+        window.history.pushState({ modalOpen: true }, '')
+      }
+    }
+
+    window.addEventListener('popstate', handlePopState)
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState)
+      
+      if (window.history.state?.modalOpen) {
+        window.history.back()
+      }
+    }
+  }, [onClose])
+
   const addToProfile = async () => {
     setIsAdding(true)
     try {
@@ -279,7 +308,10 @@ function AnimeDetails({ animeId, onClose }) {
       isOpen={isAuthenticated && exiting && Boolean(changes)}
       onConfirm={async () => {await handleSave(); setExiting(false); onClose()}}
       onClose={() => {setExiting(false); onClose()}}
-      message={"Do you want exit without saving?"}
+      cross={() => {setExiting(false)}}
+      message={"Do you want save before exiting?"}
+      option1={"Yes"}
+      option2={"No"}
       />
 
       {/* FULL BLEED SCREEN BACKDROP */}

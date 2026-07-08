@@ -101,7 +101,7 @@ function Card({
           ) : (
             <div 
               onClick={(e) => e.stopPropagation()}
-              className='flex items-center space-x-1.5 bg-[#200800]/90 border border-[#A46A44]/30 rounded-xl px-2 py-1 animate-fade-in'
+              className='flex h-8 items-center space-x-1.5 bg-[#200800]/90 border border-[#A46A44]/30 rounded-xl px-2 py-1 animate-fade-in'
             >
               
               <button 
