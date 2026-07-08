@@ -3,6 +3,15 @@ import { ApiError } from '../utils/ApiError.js'
 import { ApiResponse } from '../utils/ApiResponse.js'
 import axios from 'axios'
 
+
+const getAccessToken = (req) => {
+    const bearer = req.headers.authorization?.startsWith("Bearer ")
+        ? req.headers.authorization.slice(7)
+        : null;
+
+    return bearer || req.cookies?.access_token;
+};
+
 const searchAnime = asyncHandler(async (req, res) => {
     const { q } = req.query;
 
@@ -78,11 +87,10 @@ const getAnimeDetails = asyncHandler(async (req, res) => {
 })
 
 const getList = asyncHandler(async (req, res) => {
-    const accessToken = req.cookies?.access_token
-    const userId = req.cookies?.user_id
+    const accessToken = getAccessToken(req);
 
-    if (!accessToken || !userId) {
-        throw new ApiError(401, "Authentication Failed")
+    if (!accessToken) {
+      throw new ApiError(401, "Authentication Failed");
     }
 
     const response = await axios.get(
@@ -208,7 +216,7 @@ const getDiscover = asyncHandler(async (req, res) => {
 import qs from 'qs'
 
 const edit = asyncHandler(async (req, res) => {
-    const accessToken = req.cookies?.access_token
+    const accessToken = getAccessToken(req);
 
     if (!accessToken) {
         throw new ApiError(401, "Authentication Failed")
@@ -253,7 +261,7 @@ const edit = asyncHandler(async (req, res) => {
 })
 
 const deleteAnime = asyncHandler(async (req, res) => {
-    const accessToken = req.cookies?.access_token
+    const accessToken = getAccessToken(req);
 
     if (!accessToken) {
         throw new ApiError(401, "Authentication Failed")
