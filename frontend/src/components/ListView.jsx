@@ -5,6 +5,8 @@ import { setListScrollPosition } from '../store/animeSlice'
 import Button2 from './Button2'
 import { loginHandle } from '../services/authService'
 
+import { useWindowVirtualizer } from '@tanstack/react-virtual'
+
 const tabs = [
   { id: 'watching', label: 'WATCHING', activeClass: 'bg-[#A77510]/15 border-[#A77510]/40 text-[#A77510] shadow-[0_0_15px_rgba(167,117,16,0.15)]'},
   { id: 'plan_to_watch', label: 'PLAN TO WATCH', activeClass: 'bg-gray-100/10 border-gray-100/30 text-gray-100'},
@@ -81,6 +83,15 @@ function ListView({
 
   const [menuAnime, setMenuAnime] = useState("")
 
+  const listRef = useRef(null)
+
+  const virtualizer = useWindowVirtualizer({
+    count: formattedAnimeList.length,
+    estimateSize: () => 150,
+    overscan: 20,
+    scrollMargin: listRef.current?.offsetTop ?? 0
+  })
+
   return (
     <div 
       onTouchStart={handleTouchStart} 
@@ -119,7 +130,11 @@ function ListView({
       </header>
 
       {/* CORE CARDS WRAPPER PANE */}
-      <main className="flex-1 z-10 max-w-2xl w-full mx-auto px-4 mt-32 flex flex-col space-y-3 pb-32">
+      <main 
+        ref={listRef} 
+        className="z-10 max-w-2xl w-full mx-auto px-4 mt-32 relative pb-32"
+        style={{ height: `${virtualizer.getTotalSize()}px` }}
+      >
         {activeListToRender.length === 0 ? (
           <div className='w-full border border-dashed border-[#A46A44]/20 rounded-2xl py-16 text-center'>
             <p className='text-[#A46A44] mb-6 text-xs font-medium uppercase tracking-wider'>
@@ -134,20 +149,31 @@ function ListView({
             )}
           </div>
         ) : (
-          formattedAnimeList.map((anime) => (
-            <div 
-              key={anime.id}
-              className="cursor-pointer active:scale-[0.99] transition-transform will-change-transform contain-intrinsic-size-[120px] content-visibility-auto"
-            >
-              <Card 
-                anime={anime} 
-                menuAnime={menuAnime} 
-                setMenuAnime={setMenuAnime} 
-                onAnimeSelect={onAnimeSelect} 
-                setDeletingAnime={setDeletingAnime}
-              />
-            </div>
-          ))
+          virtualizer.getVirtualItems().map((virtualItem) => {
+            const anime = formattedAnimeList[virtualItem.index]
+            
+            return (
+              <div 
+                key={anime.id}
+                data-index={virtualItem.index} 
+                ref={virtualizer.measureElement}
+                className="absolute top-0 left-0 w-full px-4"
+                style={{
+                  transform: `translateY(${virtualItem.start}px)`
+                }}
+              >
+                <div className="cursor-pointer active:scale-[0.99] transition-transform will-change-transform pb-4">
+                  <Card 
+                    anime={anime} 
+                    menuAnime={menuAnime} 
+                    setMenuAnime={setMenuAnime} 
+                    onAnimeSelect={onAnimeSelect} 
+                    setDeletingAnime={setDeletingAnime}
+                  />
+                </div>
+              </div>
+            )
+          })
         )}
       </main>
     </div>
