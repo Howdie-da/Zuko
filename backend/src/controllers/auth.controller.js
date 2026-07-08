@@ -37,15 +37,18 @@ const login = asyncHandler(async (req, res) => {
 const callback = asyncHandler(async (req, res) => {
     const code = req.query?.code;
     const verifier = req.cookies?.code_verifier;
-
+    
     const returnToPath = req.query?.state || '/';
     
-    const frontendUrl = process.env.HOME_PAGE || 'http://localhost:5173';
+    const frontendUrl = process.env.FRONTEND_URL || 'https://zuko-list.vercel.app';
 
     res.clearCookie('code_verifier');
 
     if (!code || !verifier) {
-        return res.redirect(`${frontendUrl}/?error=auth_failed`);
+        const errorUrl = returnToPath.startsWith('zuko://') 
+            ? `${returnToPath}?error=auth_failed` 
+            : `${frontendUrl}/?error=auth_failed`;
+        return res.redirect(errorUrl);
     }
 
     const tokenPayload = {
@@ -60,22 +63,14 @@ const callback = asyncHandler(async (req, res) => {
     const response = await axios.post(
         "https://myanimelist.net/v1/oauth2/token",
         new URLSearchParams(tokenPayload),
-        {
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded",
-            },
-        }
+        { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
     );
 
     const { access_token, refresh_token } = response.data;
 
     const profileResponse = await axios.get(
         "https://api.myanimelist.net/v2/users/@me",
-        {
-            headers: {
-                "Authorization": `Bearer ${access_token}`
-            }
-        }
+        { headers: { "Authorization": `Bearer ${access_token}` } }
     );
 
     const profile = profileResponse.data;
@@ -88,17 +83,18 @@ const callback = asyncHandler(async (req, res) => {
             accessToken: access_token,
             refreshToken: refresh_token
         },
-        {
-            returnDocument: "after",
-            upsert: true
-        }
+        { returnDocument: "after", upsert: true }
     );
 
-    return res
-        .cookie("access_token", access_token, options)
-        .cookie("refresh_token", refresh_token, options)
-        .cookie("user_id", user.malId, options)
-        .redirect(`${frontendUrl}${returnToPath}`);
+    if (returnToPath.startsWith('zuko://')) {
+        return res.redirect(`${returnToPath}?accessToken=${access_token}&refreshToken=${refresh_token}`);
+    } else {
+        return res
+            .cookie("access_token", access_token, options)
+            .cookie("refresh_token", refresh_token, options)
+            .cookie("user_id", user.malId, options)
+            .redirect(`${frontendUrl}${returnToPath}`);
+    }
 });
 
 const getProfile = asyncHandler(async (req, res) => {
