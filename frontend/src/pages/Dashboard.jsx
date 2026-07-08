@@ -16,6 +16,21 @@ function Dashboard() {
   const [searchResults, setSearchResults] = useState([])
   const [searching, setSearching] = useState(false)
 
+  useEffect(() => {
+    const initializeAuth = async () => {
+      try {
+        const response = await apiClient.get('auth/me')
+
+        if (response.data) {
+          dispatch(setCreds({user: response.data}))
+        }
+      } catch (error) {
+        console.log("No active secure session found.")
+      }
+    }
+
+    initializeAuth()
+  }, [])
   
   useEffect(() => {
     const fetchUserCatalog = async () => {
