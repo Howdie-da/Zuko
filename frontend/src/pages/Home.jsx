@@ -29,10 +29,6 @@ function Home() {
     initializeAuth()
   }, [])
 
-  const handleAuthClick = () => {
-    loginHandle((userData) => dispatch(setCreds({ user: userData })))
-  }
-
   return (
     <div className='relative min-h-screen w-full bg-[#200800] overflow-hidden flex flex-col justify-between items-center font-sans'>
       
@@ -51,7 +47,7 @@ function Home() {
         </div>
         <div className='md:flex space-x-8 text-sm font-medium text-[#E6BD9E]/70'>
           <button onClick={() => navigate('/dashboard')} className='hover:text-[#A77510] cursor-pointer transition-colors'>Dashboard</button>
-          <button onClick={handleAuthClick} className='hover:text-[#A77510] transition-colors cursor-pointer'>Login</button>
+          <button onClick={loginHandle} className='hover:text-[#A77510] transition-colors cursor-pointer'>Login</button>
         </div>
       </header>
 
@@ -67,7 +63,7 @@ function Home() {
         </p>
 
         <div className='pt-4'>
-          <Button2 onClick={isAuthenticated ? null : handleAuthClick}>
+          <Button2 onClick={isAuthenticated ? null : loginHandle}>
             {isAuthenticated ? "Connected" : "Get Started"}
           </Button2>
         </div>

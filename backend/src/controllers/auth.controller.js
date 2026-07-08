@@ -13,6 +13,7 @@ const options = {
 };
 
 const login = asyncHandler(async (req, res) => {
+    const returnTo = req.query.returnTo || '/';
     const verifier = crypto.randomBytes(48).toString('base64url');
 
     res.cookie("code_verifier", verifier, {
@@ -27,7 +28,8 @@ const login = asyncHandler(async (req, res) => {
                        `&client_id=${process.env.MAL_CLIENT_ID}` +
                        `&redirect_uri=${encodeURIComponent(process.env.MAL_REDIRECT_URI)}` +
                        `&code_challenge=${verifier}` +
-                       `&code_challenge_method=plain`;
+                       `&code_challenge_method=plain` +
+                       `&state=${encodeURIComponent(returnTo)}`;
     
     res.redirect(malAuthUrl);
 });
@@ -36,10 +38,14 @@ const callback = asyncHandler(async (req, res) => {
     const code = req.query?.code;
     const verifier = req.cookies?.code_verifier;
 
+    const returnToPath = req.query?.state || '/';
+    
+    const frontendUrl = process.env.HOME_PAGE || 'http://localhost:5173';
+
     res.clearCookie('code_verifier');
 
     if (!code || !verifier) {
-        return res.send(`<script>window.close();</script>`);
+        return res.redirect(`${frontendUrl}/?error=auth_failed`);
     }
 
     const tokenPayload = {
@@ -92,18 +98,7 @@ const callback = asyncHandler(async (req, res) => {
         .cookie("access_token", access_token, options)
         .cookie("refresh_token", refresh_token, options)
         .cookie("user_id", user.malId, options)
-        .send(`
-            <script>
-                // A small delay ensures the cookie is written to the browser 
-                // BEFORE the popup notifies the main window and closes.
-                setTimeout(() => {
-                    if (window.opener) {
-                        window.opener.postMessage("mal_login_success", "*");
-                    }
-                    window.close();
-                }, 500); 
-            </script>
-        `);
+        .redirect(`${frontendUrl}${returnToPath}`);
 });
 
 const getProfile = asyncHandler(async (req, res) => {

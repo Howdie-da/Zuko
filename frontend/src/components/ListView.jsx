@@ -93,10 +93,6 @@ function ListView({
     scrollMargin: listRef.current?.offsetTop ?? 0
   })
 
-  const handleAuthClick = () => {
-    loginHandle((userData) => dispatch(setCreds({ user: userData })))
-  }
-
   return (
     <div 
       onTouchStart={handleTouchStart} 
@@ -147,7 +143,7 @@ function ListView({
             </p>
             {!isAuthenticated && (
               <Button2
-              onClick={handleAuthClick}
+              onClick={loginHandle}
               >
                 Login
               </Button2>
