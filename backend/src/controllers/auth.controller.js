@@ -94,12 +94,14 @@ const callback = asyncHandler(async (req, res) => {
         .cookie("user_id", user.malId, options)
         .send(`
             <script>
-                // Send a message back to the main window
-                if (window.opener) {
-                    window.opener.postMessage("mal_login_success", "*");
-                }
-                // Close the popup
-                window.close();
+                // A small delay ensures the cookie is written to the browser 
+                // BEFORE the popup notifies the main window and closes.
+                setTimeout(() => {
+                    if (window.opener) {
+                        window.opener.postMessage("mal_login_success", "*");
+                    }
+                    window.close();
+                }, 500); 
             </script>
         `);
 });
