@@ -1,7 +1,7 @@
 {
   "rewrites": [
     {
-      "source": "/api/(.*)",
+      "source": "/api/:path*",
       "destination": "https://zuko-1rfg.onrender.com/api/:path*"
     },
     {
