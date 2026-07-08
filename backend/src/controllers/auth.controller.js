@@ -14,16 +14,8 @@ const options = {
 
 const login = asyncHandler(async (req, res) => {
     const verifier = crypto.randomBytes(48).toString('base64url');
-    const returnTo = req.query.returnTo || '/';
 
     res.cookie("code_verifier", verifier, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'none',
-        maxAge: 1000 * 60 * 15
-    });
-    
-    res.cookie('return_to_path', returnTo, {
         httpOnly: true,
         secure: true,
         sameSite: 'none',
@@ -44,13 +36,10 @@ const callback = asyncHandler(async (req, res) => {
     const code = req.query?.code;
     const verifier = req.cookies?.code_verifier;
 
-    const returnTo = req.cookies?.return_to_path || process.env.HOME_PAGE;
-    
-    res.clearCookie('return_to_path');
     res.clearCookie('code_verifier');
 
     if (!code || !verifier) {
-        return res.redirect(process.env.HOME_PAGE);
+        return res.send(`<script>window.close();</script>`);
     }
 
     const tokenPayload = {
@@ -74,7 +63,6 @@ const callback = asyncHandler(async (req, res) => {
 
     const { access_token, refresh_token } = response.data;
 
-    // ✅ FIXED: Changed http:// to https://
     const profileResponse = await axios.get(
         "https://api.myanimelist.net/v2/users/@me",
         {
@@ -104,7 +92,16 @@ const callback = asyncHandler(async (req, res) => {
         .cookie("access_token", access_token, options)
         .cookie("refresh_token", refresh_token, options)
         .cookie("user_id", user.malId, options)
-        .redirect(returnTo);
+        .send(`
+            <script>
+                // Send a message back to the main window
+                if (window.opener) {
+                    window.opener.postMessage("mal_login_success", "*");
+                }
+                // Close the popup
+                window.close();
+            </script>
+        `);
 });
 
 const getProfile = asyncHandler(async (req, res) => {
