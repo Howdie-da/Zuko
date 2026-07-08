@@ -17,7 +17,9 @@ const loginHandle = (setUser) => {
     );
 
     const messageListener = async (event) => {
-        const expectedOrigin = new URL(backendUrl).origin;
+        const expectedOrigin = backendUrl.startsWith('http') 
+            ? new URL(backendUrl).origin
+            : window.location.origin;
         
         if (event.origin !== expectedOrigin) return; 
 
