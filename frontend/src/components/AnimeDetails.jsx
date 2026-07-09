@@ -150,6 +150,12 @@ function AnimeDetails({ animeId, onClose }) {
 
     let finalEp = currEp
     let finalStatus = currStatus
+
+    if (finalStatus === 'completed' && finalEp === anime.currentEp) {
+      finalEp = anime.totalEp ? anime.totalEp : finalEp
+    } else if (finalStatus === 'plan_to_watch' && finalEp === anime.currentEp) {
+      finalEp = 0
+    }
     
     if (anime.totalEp === 0) {
       if (finalEp === 0) {

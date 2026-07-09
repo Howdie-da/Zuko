@@ -132,7 +132,7 @@ function Dashboard() {
       )}
 
       {!selectedAnimeId && (
-        <footer className="fixed bottom-0 z-50 w-full max-w-4xl left-0 right-0 mx-auto px-6 pt-6 pointer-events-none bg-[#200800]/60 backdrop-blur-xl border border-[#A46A44]/20 rounded-2xl py-4 shadow-xl">
+        <footer className="fixed bottom-0 z-50 w-full max-w-4xl left-0 right-0 mx-auto px-6 pt-6 bg-[#200800]/60 backdrop-blur-xl border border-[#A46A44]/20 rounded-2xl py-4 shadow-xl">
           <div className='w-full flex items-center justify-between pointer-events-auto text-gray-200 px-3'>
           
             <button 
