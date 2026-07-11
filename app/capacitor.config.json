@@ -1,0 +1,10 @@
+{
+  "appId": "com.list.zuko",
+  "appName": "Zuko",
+  "webDir": "dist",
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    }
+  }
+}

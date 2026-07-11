@@ -1,0 +1,84 @@
+import React, { useEffect, useState } from 'react'
+import { Button2 } from '../components'
+import zuko1 from '../assets/zuko1.jpg'
+import { getProfile, login } from '../services/authService'
+import { useDispatch, useSelector } from 'react-redux'
+import { setCreds } from '../store/authSlice'
+import { useNavigate } from 'react-router'
+
+function Home() {
+  const dispatch = useDispatch()
+  const navigate = useNavigate();
+  
+  const isAuthenticated = useSelector(state => state.auth.isAuthenticated)
+
+  useEffect(() => {
+    const initializeAuth = async () => {
+      try {
+        const response = await getProfile()
+
+        if (response) {
+          dispatch(setCreds({user: response}))
+        }
+      } catch (error) {
+        console.log("No active secure session found.")
+      }
+    }
+
+    initializeAuth()
+  }, [dispatch])
+
+const handleNativeLogin = () => {
+  login((userData) => {
+    dispatch(setCreds({ user: userData }));
+    navigate('/dashboard'); 
+  });
+};
+
+  return (
+    <div className='relative min-h-screen w-full bg-[#200800] overflow-hidden flex flex-col justify-between items-center font-sans'>
+      
+      <div 
+        className='absolute inset-0 bg-cover bg-position-[38%] md:bg-center z-0 mix-blend-luminosity opacity-40'
+        style={{ backgroundImage: `url(${zuko1})` }}
+      />
+
+      <div className='absolute inset-0 bg-linear-to-b from-[#200800]/60 via-[#441100]/40 to-[#200800] z-0' />
+
+      <header className='relative z-10 w-full max-w-7xl px-8 py-6 flex justify-between items-center'>
+        <div className='text-xl font-bold tracking-wider text-[#A77510]'>
+          ZUKO.
+        </div>
+        <div className='md:flex space-x-8 text-sm font-medium text-[#E6BD9E]/70'>
+          <button onClick={() => navigate('/dashboard')} className='hover:text-[#A77510] cursor-pointer transition-colors'>Dashboard</button>
+          <button onClick={handleNativeLogin} className='hover:text-[#A77510] transition-colors cursor-pointer'>Login</button>
+        </div>
+      </header>
+
+      <main className='relative z-10 flex flex-col items-center text-center max-w-3xl px-4 my-auto space-y-8 rounded-3xl'>
+        
+        <h1 className='text-7xl md:text-8xl font-black tracking-tight text-transparent bg-clip-text bg-linear-to-b from-[#E6BD9E] via-[#C85213] to-[#A46A44] drop-shadow-[0_4px_12px_rgba(32,8,0,0.8)]'>
+          Zuko
+        </h1>
+
+        <p className='text-lg md:text-xl font-medium text-[#E6BD9E]/80 max-w-xl leading-relaxed drop-shadow-md'>
+          Track your personal MyAnimeList catalog seamlessly with a streamlined, high-velocity interface.
+        </p>
+
+        <div className='pt-4'>
+          <Button2 onClick={() => isAuthenticated ? navigate('/dashboard') : handleNativeLogin()}>
+            {isAuthenticated ? "Connected" : "Get Started"}
+          </Button2>
+        </div>
+
+      </main>
+
+      <footer className='relative z-10 w-full h-24 bg-linear-to-t from-[#200800] to-transparent flex items-center justify-center text-xs text-[#A46A44]/50'>
+        © 2026 Zuko App. All Rights Reserved.
+      </footer>
+
+    </div>
+  )
+}
+
+export default Home
